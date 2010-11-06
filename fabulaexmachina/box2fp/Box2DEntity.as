@@ -56,9 +56,9 @@ package fabulaexmachina.box2fp
 			body.SetUserData(this);
 		}
 		
-		public function buildShapes(friction:Number = 0.3, 
-				density:Number = 1, restitution:Number = 1,
-				group:int = 0, category:int = 0, collmask:int = 0):void { }
+		public function buildShapes(friction:Number, 
+				density:Number, restitution:Number,
+				group:int, category:int, collmask:int):void { }
 		
 		public function get images():Array
 		{
