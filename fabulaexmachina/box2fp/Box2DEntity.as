@@ -7,12 +7,12 @@ package fabulaexmachina.box2fp
 	import Box2D.Dynamics.b2Fixture;
 	import Box2D.Dynamics.b2FixtureDef;
 	
+	import fabulaexmachina.box2fp.graphics.SuperGraphiclist;
+	
 	import net.flashpunk.Entity;
 	import net.flashpunk.FP;
 	import net.flashpunk.Graphic;
 	import net.flashpunk.Mask;
-	import net.flashpunk.graphics.Graphiclist;
-	import net.flashpunk.graphics.Image;
 	
 	public class Box2DEntity extends Entity implements IBox2DEntity
 	{	
@@ -20,7 +20,6 @@ package fabulaexmachina.box2fp
 		protected static var fixture:b2FixtureDef = new b2FixtureDef();
 		
 		public var body:b2Body;
-		protected var _images:Array = new Array;
 		protected var _world:Box2DWorld;
 		
 		public function Box2DEntity(x:Number=0, y:Number=0, w:uint = 1, 
@@ -28,7 +27,7 @@ package fabulaexmachina.box2fp
 								category:int = 0, collmask:int = 0, friction:Number = 0.3, 
 								density:Number = 1, restitution:Number = 1)
 		{
-			super(x, y, new Graphiclist());
+			super(x, y, new SuperGraphiclist);
 			
 			_world = FP.world as Box2DWorld;
 			
@@ -60,11 +59,6 @@ package fabulaexmachina.box2fp
 				density:Number, restitution:Number,
 				group:int, category:int, collmask:int):void { }
 		
-		public function get images():Array
-		{
-			return _images;
-		}
-		
 		override public function update():void
 		{
 			if (body.GetType() != b2Body.b2_staticBody)
@@ -86,13 +80,6 @@ package fabulaexmachina.box2fp
 			}
 		}
 		
-		public function addImage(img:Image):void
-		{
-			img.smooth = true;
-			_images.push(img);
-			(graphic as Graphiclist).add(img);
-		}
-		
 		public function get angle():Number
 		{
 			return body.GetAngle() * 180.0 / Math.PI;
@@ -101,8 +88,9 @@ package fabulaexmachina.box2fp
 		public function set angle(angle:Number):void
 		{
 			body.SetAngle(angle * Math.PI / 180.0);
-			for each (var img:Image in _images)
-				img.angle = -angle;
+			(graphic as SuperGraphiclist).angle = -angle;
+			if (angle != 0)
+				(graphic as SuperGraphiclist).smooth = true;
 		}
 		
 		public function get angleRads():Number
@@ -113,20 +101,18 @@ package fabulaexmachina.box2fp
 		public function set angleRads(angle:Number):void
 		{
 			body.SetAngle(angle);
-			for each (var img:Image in _images)
-				img.angle = -angle * 180.0 / Math.PI;
+			(graphic as SuperGraphiclist).angle = -angle * 180.0 / Math.PI;
+			if (angle != 0)
+				(graphic as SuperGraphiclist).smooth = true;
 		}
 		
 		public function get alpha():Number
 		{
-			if (images.length > 0)
-				return (images[0] as Image).alpha;
-			return -1;
+			return (graphic as SuperGraphiclist).alpha;
 		}
 		public function set alpha(val:Number):void
 		{
-			for each (var img:Image in images)
-				img.alpha = val;
+			(graphic as SuperGraphiclist).alpha = val;
 		}
 		
 		public function get X():Number { return x; }
