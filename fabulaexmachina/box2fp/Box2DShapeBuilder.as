@@ -6,8 +6,23 @@ package fabulaexmachina.box2fp
 	import Box2D.Dynamics.b2Fixture;
 	import Box2D.Dynamics.b2FixtureDef;
 
+	/**
+	 * Utility class for building shapes.
+	 */
 	public class Box2DShapeBuilder
 	{
+		/**
+		 * Builds a rectangle
+		 * @param body			the body to add the shape to
+		 * @param hw			half the width (metres)
+		 * @param hh 			half the height (metres)
+		 * @param friction
+		 * @param density
+		 * @param restitution	bounciness
+		 * @param group			box2d collision group (ignore if 0)
+		 * @param category		box2d collision category (ignore if 0)
+		 * @param collmask		box2d collision mask (ignore if 0)
+		 */
 		public static function buildRectangle(body:b2Body, hw:Number, hh:Number, friction:Number = 0.3, 
 			density:Number = 1, restitution:Number = 1, group:int = 0, category:int = 0, collmask:int = 0):b2Fixture
 		{
@@ -29,6 +44,17 @@ package fabulaexmachina.box2fp
 			return fixture;
 		}
 		
+		/**
+		 * Builds a circle
+		 * @param body			the body to add the shape to
+		 * @param r				radius (metres)
+		 * @param friction
+		 * @param density
+		 * @param restitution	bounciness
+		 * @param group			box2d collision group (ignore if 0)
+		 * @param category		box2d collision category (ignore if 0)
+		 * @param collmask		box2d collision mask (ignore if 0)
+		 */
 		public static function buildCircle(body:b2Body, r:Number, friction:Number = 0.3, 
 			density:Number = 1, restitution:Number = 1, group:int = 0, category:int = 0, collmask:int = 0):b2Fixture
 		{

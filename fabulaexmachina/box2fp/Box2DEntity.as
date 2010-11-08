@@ -14,34 +14,44 @@ package fabulaexmachina.box2fp
 	import net.flashpunk.Graphic;
 	import net.flashpunk.Mask;
 	
+	/**
+	 * An Flashpunk entity which contains a Box2D body, governed by both worlds.
+	 */
 	public class Box2DEntity extends Entity implements IBox2DEntity
-	{	
-		//Reusable
-		protected static var fixture:b2FixtureDef = new b2FixtureDef();
-		
-		public var body:b2Body;
-		protected var _world:Box2DWorld;
-		
+	{
+		/**
+		 * Constructor. Sets the graphic to a SuperGraphiclist
+		 * @param x				x co-ord (pixels)
+		 * @param y				y co-ord (pixels)
+		 * @param w				width (pixels)
+		 * @param h				height (pixels)
+		 * @param b2Type		box2d body type (dynamic, kinematic, static)
+		 * @param group			box2d collision group (ignored if 0)
+		 * @param category		box2d collision category (ignored if 0)
+		 * @param collmask		box2d collision mask (ignored if 0)
+		 * @param friction
+		 * @param density
+		 * @param restitution	bounciness
+		 */
 		public function Box2DEntity(x:Number=0, y:Number=0, w:uint = 1, 
-								h:uint = 1, type:int = 0, group:int = 0, 
+								h:uint = 1, b2Type:int = 0, group:int = 0, 
 								category:int = 0, collmask:int = 0, friction:Number = 0.3, 
 								density:Number = 1, restitution:Number = 1)
 		{
 			super(x, y, new SuperGraphiclist);
 			
-			_world = FP.world as Box2DWorld;
-			
 			var bodyDef:b2BodyDef = new b2BodyDef;
-			bodyDef.position.Set((x + w/2) / _world.scale, (y + h/2) / _world.scale);
-			bodyDef.type = type;
+			bodyDef.position.Set((x + w/2) / box2dworld.scale, (y + h/2) / box2dworld.scale);
+			bodyDef.type = b2Type;
 			
 			width = w;
 			height = h;
 			
-			if (_world != null)
+			if (box2dworld != null)
 			{
-				body = _world.world.CreateBody(bodyDef);
+				_body = box2dworld.b2world.CreateBody(bodyDef);
 			} else {
+				FP.console.enable();
 				FP.console.paused = true;
 				FP.console.log("ERROR: Box2DEntity created in non Box2DWorld"); 
 			}
@@ -49,42 +59,80 @@ package fabulaexmachina.box2fp
 			buildShapes(friction, density, restitution, group, category, collmask);
 		}
 		
+		/** Get the Box2D body object */
+		public function get body():b2Body
+		{
+			return _body;
+		}
+		
+		/** Get the Box2D world the object is in */
+		protected function get box2dworld():Box2DWorld
+		{
+			if (world is Box2DWorld) 
+				return world as Box2DWorld;
+			return null;
+		}
+		
+		/** Sets the user data of the Box2D body to the Flashpunk entity */
 		override public function added():void
 		{
 			super.added();
 			body.SetUserData(this);
 		}
 		
+		/** 
+		 * Overridable function to create Box2D shapes within the constructor 
+		 * @param group			box2d collision group (ignore if 0)
+		 * @param category		box2d collision category (ignore if 0)
+		 * @param collmask		box2d collision mask (ignore if 0)
+		 * @param friction
+		 * @param density
+		 * @param restitution	bounciness
+		 */
 		public function buildShapes(friction:Number, 
 				density:Number, restitution:Number,
 				group:int, category:int, collmask:int):void { }
 		
+		/**
+		 * Overrided Update.
+		 * Move the flashpunk entity to the co-ordinates specified by the 
+		 * 	Box2D body. 
+		 */
 		override public function update():void
 		{
 			if (body.GetType() != b2Body.b2_staticBody)
 			{
 				var pos:b2Vec2 = body.GetPosition();
-				x = pos.x * _world.scale - width/2 + 1;
-				y = pos.y * _world.scale - height/2 + 1;
+				x = pos.x * box2dworld.scale - width/2 + 1;
+				y = pos.y * box2dworld.scale - height/2 + 1;
 				angleRads = body.GetAngle();
 			}
 			super.update();
 		}
 		
+		/**
+		 * Remove the object from both worlds.
+		 */
 		public function remove():void
 		{
-			if (_world)
+			if (box2dworld)
 			{
-				_world.world.DestroyBody(body);
-				_world.remove(this);
+				box2dworld.b2world.DestroyBody(body);
+				box2dworld.remove(this);
 			}
 		}
 		
+		/**
+		 * Get the Box2D angle in degrees
+		 */
 		public function get angle():Number
 		{
 			return body.GetAngle() * 180.0 / Math.PI;
 		}
 		
+		/**
+		 * Set the Box2D angle in degrees (opposite of Flashpunk angle)
+		 */
 		public function set angle(angle:Number):void
 		{
 			body.SetAngle(angle * Math.PI / 180.0);
@@ -93,26 +141,23 @@ package fabulaexmachina.box2fp
 				(graphic as SuperGraphiclist).smooth = true;
 		}
 		
+		/**
+		 * Get the Box2D angle in radians
+		 */
 		public function get angleRads():Number
 		{
 			return body.GetAngle();
 		}
 		
+		/**
+		 * Set the Box2D angle in radians (opposite of Flashpunk angle)
+		 */
 		public function set angleRads(angle:Number):void
 		{
 			body.SetAngle(angle);
 			(graphic as SuperGraphiclist).angle = -angle * 180.0 / Math.PI;
 			if (angle != 0)
 				(graphic as SuperGraphiclist).smooth = true;
-		}
-		
-		public function get alpha():Number
-		{
-			return (graphic as SuperGraphiclist).alpha;
-		}
-		public function set alpha(val:Number):void
-		{
-			(graphic as SuperGraphiclist).alpha = val;
 		}
 		
 		public function get X():Number { return x; }
@@ -123,5 +168,7 @@ package fabulaexmachina.box2fp
 		public function set Width(v:Number):void { width = v; }
 		public function get Height():Number { return height; }
 		public function set Height(v:Number):void { height = v; }
+		
+		private var _body:b2Body;
 	}
 }
