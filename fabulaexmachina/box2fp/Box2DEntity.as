@@ -40,12 +40,22 @@ package fabulaexmachina.box2fp
 		{
 			super(x, y, new SuperGraphiclist);
 			
-			var bodyDef:b2BodyDef = new b2BodyDef;
-			bodyDef.position.Set((x + w/2) / box2dworld.scale, (y + h/2) / box2dworld.scale);
-			bodyDef.type = b2Type;
+			_Box2DOptions = { type: b2Type, group: group, category: category, collmask: collmask,
+								friction: friction, density: density, restitution: restitution };
 			
 			width = w;
 			height = h;
+		}
+		private var _Box2DOptions:Object;
+		
+		/** Sets the user data of the Box2D body to the Flashpunk entity */
+		override public function added():void
+		{
+			super.added();
+			
+			var bodyDef:b2BodyDef = new b2BodyDef;
+			bodyDef.position.Set((x + width/2) / box2dworld.scale, (y + height/2) / box2dworld.scale);
+			bodyDef.type = _Box2DOptions.type;
 			
 			if (box2dworld != null)
 			{
@@ -56,7 +66,12 @@ package fabulaexmachina.box2fp
 				FP.console.log("ERROR: Box2DEntity created in non Box2DWorld"); 
 			}
 			
-			buildShapes(friction, density, restitution, group, category, collmask);
+			buildShapes(_Box2DOptions.friction, _Box2DOptions.density, 
+				_Box2DOptions.restitution, _Box2DOptions.group, _Box2DOptions.category, 
+				_Box2DOptions.collmask);
+			_Box2DOptions = null;
+			
+			body.SetUserData(this);
 		}
 		
 		/** Get the Box2D body object */
@@ -68,16 +83,9 @@ package fabulaexmachina.box2fp
 		/** Get the Box2D world the object is in */
 		protected function get box2dworld():Box2DWorld
 		{
-			if (world is Box2DWorld) 
-				return world as Box2DWorld;
+			if (FP.world is Box2DWorld) 
+				return FP.world as Box2DWorld;
 			return null;
-		}
-		
-		/** Sets the user data of the Box2D body to the Flashpunk entity */
-		override public function added():void
-		{
-			super.added();
-			body.SetUserData(this);
 		}
 		
 		/** 
@@ -100,7 +108,7 @@ package fabulaexmachina.box2fp
 		 */
 		override public function update():void
 		{
-			if (body.GetType() != b2Body.b2_staticBody)
+			if (body && body.GetType() != b2Body.b2_staticBody)
 			{
 				var pos:b2Vec2 = body.GetPosition();
 				x = pos.x * box2dworld.scale - width/2 + 1;
