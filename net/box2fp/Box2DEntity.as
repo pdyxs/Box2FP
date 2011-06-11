@@ -6,9 +6,9 @@ package net.box2fp
 	import Box2D.Dynamics.b2FilterData;
 	import Box2D.Dynamics.b2Fixture;
 	import Box2D.Dynamics.b2FixtureDef;
+	import Box2D.Dynamics.b2World;
 	
 	import net.box2fp.graphics.SuperGraphiclist;
-	
 	import net.flashpunk.Entity;
 	import net.flashpunk.FP;
 	import net.flashpunk.Graphic;
@@ -53,25 +53,38 @@ package net.box2fp
 		{
 			super.added();
 			
-			var bodyDef:b2BodyDef = new b2BodyDef;
-			bodyDef.position.Set((x + width/2) / box2dworld.scale, (y + height/2) / box2dworld.scale);
-			bodyDef.type = _Box2DOptions.type;
-			
 			if (box2dworld != null)
 			{
-				_body = box2dworld.b2world.CreateBody(bodyDef);
+				makeBody(box2dworld.b2world);
 			} else {
 				FP.console.enable();
 				FP.console.paused = true;
 				FP.console.log("ERROR: Box2DEntity created in non Box2DWorld"); 
 			}
 			
-			buildShapes(_Box2DOptions.friction, _Box2DOptions.density, 
-				_Box2DOptions.restitution, _Box2DOptions.group, _Box2DOptions.category, 
-				_Box2DOptions.collmask);
-			_Box2DOptions = null;
-			
 			body.SetUserData(this);
+		}
+		
+		/**
+		 * Makes the body if it hasn't already been made.
+		 * Note that you can call this in the entity's constructor if you'd like and supply the box2d world
+		 * yourself to create the box2d shapes in the frame the object is built
+		 */
+		protected function makeBody(world:b2World):void
+		{
+			if (_body == null)
+			{
+				var bodyDef:b2BodyDef = new b2BodyDef;
+				bodyDef.position.Set((x + width/2) / box2dworld.scale, (y + height/2) / box2dworld.scale);
+				bodyDef.type = _Box2DOptions.type;
+				
+				_body = world.CreateBody(bodyDef);
+				
+				buildShapes(_Box2DOptions.friction, _Box2DOptions.density, 
+					_Box2DOptions.restitution, _Box2DOptions.group, _Box2DOptions.category, 
+					_Box2DOptions.collmask);
+				_Box2DOptions = null;
+			}
 		}
 		
 		/** Get the Box2D body object */
@@ -177,6 +190,6 @@ package net.box2fp
 		public function get Height():Number { return height; }
 		public function set Height(v:Number):void { height = v; }
 		
-		private var _body:b2Body;
+		private var _body:b2Body = null;
 	}
 }
